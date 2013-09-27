@@ -348,6 +348,8 @@ namespace hpx { namespace threads
       , error_code& ec
         ) const
     {
+        // This is not implemented
+        BOOST_ASSERT(0);
         if (&ec != &throws)
             ec = make_success_code();
     }
