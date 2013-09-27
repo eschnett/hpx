@@ -286,6 +286,62 @@ namespace hpx { namespace threads
     } // }}}
 
     ///////////////////////////////////////////////////////////////////////////
+    mask_cref_type hwloc_topology::get_hwloc_thread_affinity_mask(
+        error_code& ec
+        ) const
+    { // {{{
+        // Query hwloc about affinity
+        const int pu_depth = hwloc_get_type_or_below_depth(topo, HWLOC_OBJ_PU);
+        BOOST_ASSERT(pu_depth >= 0);
+        const int num_pus = hwloc_get_nbobjs_by_depth(topo, pu_depth);
+        BOOST_ASSERT(num_pus > 0);
+        hwloc_cpuset_t cpuset = hwloc_bitmap_alloc();
+        BOOST_ASSERT(cpuset);
+        const int ierr = hwloc_get_cpubind(topo, cpuset, HWLOC_CPUBIND_THREAD);
+        BOOST_ASSERT(!ierr);
+
+        // Convert to mask
+        mask_cref_type mask = empty_mask;
+        for (int idx=0; idx<num_pus; ++idx) {
+            if (hwloc_bitmap_isset(cpuset, idx)) {
+                set(mask, idx);
+            }
+        }
+
+        hwloc_bitmap_free(cpuset);
+
+        if (&ec != &throws)
+            ec = make_success_code();
+        return mask;
+    } // }}}
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Convert a physical affinity mask to a logical affinity mask
+    mask_cref_type hwloc_topology::convert_physical_to_logical_mask(
+        mask_cref_type physmask
+      , error_code& ec
+        ) const
+    { // {{{
+        const int pu_depth = hwloc_get_type_or_below_depth(topo, HWLOC_OBJ_PU);
+        assert(pu_depth>=0);
+        const int num_pus = hwloc_get_nbobjs_by_depth(topo, pu_depth);
+        BOOST_ASSERT(num_pus > 0);
+
+        mask_cref_type logimask = empty_mask;
+        for (int idx=0; idx<num_pus; ++idx) {
+            const hwloc_obj_t pu_obj =
+                hwloc_get_obj_by_depth(topo, pu_depth, idx);
+            if (test(physmask, pu_obj->os_index)) {
+                set(logimask, idx);
+            }
+        }
+
+        if (&ec != &throws)
+            ec = make_success_code();
+        return logimask;
+    } // }}}
+
+    ///////////////////////////////////////////////////////////////////////////
     void hwloc_topology::set_thread_affinity_mask(
         boost::thread&
       , mask_cref_type //mask

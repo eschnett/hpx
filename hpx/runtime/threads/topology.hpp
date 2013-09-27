@@ -215,6 +215,29 @@ namespace hpx { namespace threads
         virtual mask_cref_type get_thread_affinity_mask(std::size_t num_thread,
             bool numa_sensitive, error_code& ec = throws) const = 0;
 
+        /// \brief Return a bit mask where each set bit corresponds to a
+        ///        processing unit available to the given thread.
+        ///        Get the thread affinity mask from hwloc (as opposed
+        ///        to only looking at the HPX data structure). This
+        ///        way, we see what the hardware is actually doing
+        ///        what HPX expects it to do.
+        ///
+        /// \param ec         [in,out] this represents the error status on exit,
+        ///                   if this is pre-initialized to \a hpx#throws
+        ///                   the function will throw on error instead.
+        virtual mask_cref_type get_hwloc_thread_affinity_mask(
+            error_code& ec = throws) const = 0;
+
+        /// \brief Convert a physical bit mask to a logical bit mask
+        ///
+        /// \param physmask   [in] physical bit mask
+        /// \param ec         [in,out] this represents the error status on exit,
+        ///                   if this is pre-initialized to \a hpx#throws
+        ///                   the function will throw on error instead.
+        virtual mask_cref_type convert_physical_to_logical_mask(
+            mask_cref_type physmask
+          , error_code& ec) const = 0;
+
         /// \brief Use the given bit mask to set the affinity of the given
         ///        thread. Each set bit corresponds to a processing unit the
         ///        thread will be allowed to run on.

@@ -69,6 +69,15 @@ namespace hpx { namespace threads
           , error_code& ec = throws
             ) const;
 
+        mask_cref_type get_hwloc_thread_affinity_mask(
+            error_code& ec = throws
+            ) const;
+
+        mask_cref_type convert_physical_to_logical_mask(
+            mask_cref_type physmask
+          , error_code& ec = throws
+            ) const;
+
         void set_thread_affinity_mask(
             boost::thread&
           , mask_cref_type //mask
