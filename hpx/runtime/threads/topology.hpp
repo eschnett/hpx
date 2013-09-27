@@ -138,6 +138,8 @@ namespace hpx { namespace threads
 # endif
     }
 #endif
+
+    void print_mask(std::ostream& out, mask_cref_type mask);
     /// \endcond
 
     struct topology

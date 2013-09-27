@@ -32,6 +32,29 @@ namespace hpx { namespace threads
 #include <hwloc.h>
 #include <hpx/exception.hpp>
 
+namespace hpx { namespace threads
+{
+    void print_mask(std::ostream& out, mask_cref_type mask)
+    {
+        hwloc_cpuset_t cpuset = hwloc_bitmap_alloc();
+        if (!cpuset) {
+            HPX_THROW_EXCEPTION(hpx::no_success, "print_mask",
+                "Failed to allocate hwloc bitmap");
+        }
+        for (std::size_t idx=0; idx!=mask_size(mask); ++idx) {
+            if (test(mask, idx)) {
+                hwloc_bitmap_set(cpuset, idx);
+            }
+        }
+        // Outputting a list of 1000 cores requires up to 5000
+        // characters; we want to be on the safe side here
+        char buffer[10000];
+        hwloc_bitmap_list_snprintf(buffer, sizeof buffer, cpuset);
+        hwloc_bitmap_free(cpuset);
+        out << "{" << buffer << "}";
+    }
+}}
+
 namespace hpx { namespace threads { namespace detail
 {
     std::size_t hwloc_hardware_concurrency()
