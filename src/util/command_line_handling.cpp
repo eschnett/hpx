@@ -761,21 +761,13 @@ namespace hpx { namespace util
 
                 bool numa_sensitive = vm_.count("hpx:numa-sensitive") ? true : false;
                 HPX_STD_UNIQUE_PTR<threads::topology> top(threads::create_topology());
-                for (std::size_t i = 0; i != num_threads; ++i)
-                {
-#if !defined(HPX_HAVE_MORE_THAN_64_THREADS) || (defined(HPX_MAX_CPU_COUNT) && HPX_MAX_CPU_COUNT <= 64)
-                    std::cout << i << ": 0x"
-                        << std::hex << std::setw(sizeof(threads::mask_type)*2)
-                        << std::setfill('0')
-                        << aff.get_pu_mask(*top, i, numa_sensitive)
-                        << std::endl;
-#else
-                    std::cout << i << ": 0b"
-                        << std::setw(sizeof(threads::mask_type)*8)
-                        << std::setfill('0')
-                        << aff.get_pu_mask(*top, i, numa_sensitive)
-                        << std::endl;
-#endif
+                std::cout << "Thread affinities:" << std::endl;
+                for (std::size_t i = 0; i != num_threads; ++i) {
+                    threads::mask_cref_type mask =
+                        aff.get_pu_mask(*top, i, numa_sensitive);
+                    std::cout << "    " << i << ": ";
+                    threads::print_mask(std::cout, mask);
+                    std::cout << std::endl;
                 }
             }
             else {
