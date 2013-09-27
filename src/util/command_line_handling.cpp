@@ -795,6 +795,22 @@ namespace hpx { namespace util
         }
 #endif
 
+#if defined(HPX_HAVE_HWLOC)
+        if (vm_.count("hpx:print-hwloc-bind")) {
+            const threads::hwloc_topology topo;
+            const threads::mask_cref_type mask =
+                topo.get_hwloc_thread_affinity_mask();
+            const threads::mask_cref_type lmask =
+                topo.convert_physical_to_logical_mask(mask);
+            std::cout << "CPU affinity (physical): ";
+            threads::print_mask(std::cout, mask);
+            std::cout << std::endl;
+            std::cout << "CPU affinity (logical): ";
+            threads::print_mask(std::cout, lmask);
+            std::cout << std::endl;
+        }
+#endif
+
         // all is good
         return 0;
     }

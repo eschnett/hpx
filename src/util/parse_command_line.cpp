@@ -430,6 +430,8 @@ namespace hpx { namespace util
                 ("hpx:print-bind", 
                   "print to the console the bit masks calculated from the "
                   "arguments specified to all --hpx:bind options.")
+                ("hpx:print-hwloc-bind", 
+                  "print to the console the bit masks reported by hwloc.")
 #endif
                 ("hpx:threads", value<std::string>(),
                  "the number of operating system threads to spawn for this HPX "

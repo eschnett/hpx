@@ -72,6 +72,7 @@ described in the table below:
                                  `--hpx:affinity` options. Implies `--hpx:numa-sensitive`.]]
     [[`--hpx:print-bind`]       [print to the console the bit masks calculated from the
                                  arguments specified to all `--hpx:bind` options.]]
+    [[`--hpx:print-hwloc-bind`] [print to the console the bit masks reported by hwloc.]]
     [[`--hpx:queuing arg`]      [the queue scheduling policy to use, options are
                                  'local/l', 'priority_local/pr', 'abp/a', 'priority_abp',
                                  'hierarchy/h', and 'periodic/pe' (default: priority_local/p)]]
