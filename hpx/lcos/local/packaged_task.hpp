@@ -87,6 +87,35 @@ namespace hpx { namespace lcos { namespace local
             }
         };
 
+        template <typename Result, typename F>
+        struct task_object<Result, F&>
+          : lcos::detail::task_base<Result>
+        {
+            typedef lcos::detail::task_base<Result> base_type;
+            typedef typename lcos::detail::task_base<Result>::result_type
+                result_type;
+
+            F f_;
+
+            task_object(F const& f)
+              : f_(f)
+            {}
+
+            task_object(threads::executor& sched, F const& f)
+              : base_type(sched), f_(f)
+            {}
+
+            void do_run()
+            {
+                try {
+                    this->set_data(f_());
+                }
+                catch(...) {
+                    this->set_exception(boost::current_exception());
+                }
+            }
+        };
+
         template <typename F>
         struct task_object<void, F>
           : lcos::detail::task_base<void>
@@ -111,6 +140,36 @@ namespace hpx { namespace lcos { namespace local
 
             task_object(threads::executor& sched, BOOST_RV_REF(F) f)
               : base_type(sched), f_(boost::move(f))
+            {}
+
+            void do_run()
+            {
+                try {
+                    f_();
+                    this->set_data(result_type());
+                }
+                catch(...) {
+                    this->set_exception(boost::current_exception());
+                }
+            }
+        };
+
+        template <typename F>
+        struct task_object<void, F&>
+          : lcos::detail::task_base<void>
+        {
+            typedef lcos::detail::task_base<void> base_type;
+            typedef typename lcos::detail::task_base<void>::result_type
+                result_type;
+
+            F f_;
+
+            task_object(F const& f)
+              : f_(f)
+            {}
+
+            task_object(threads::executor& sched, F const& f)
+              : base_type(sched), f_(f)
             {}
 
             void do_run()
