@@ -697,6 +697,7 @@ namespace hpx { namespace lcos
 
     private:
         friend struct detail::future_access;
+        friend class future<R>;
 
         // Effects: constructs a future object from an shared state
         explicit unique_future(
@@ -731,6 +732,12 @@ namespace hpx { namespace lcos
         unique_future(BOOST_RV_REF(unique_future) other) BOOST_NOEXCEPT
           : base_type(boost::move(other))
         {}
+
+        unique_future(BOOST_RV_REF(future<R>) other) BOOST_NOEXCEPT
+          : base_type(detail::future_access::get_shared_state(other))
+        {
+            other = future<R>();
+        }
 
         // Effects: constructs a future object by moving the instance referred
         //          to by rhs and unwrapping the inner future (see unwrap()).
@@ -873,6 +880,8 @@ namespace hpx { namespace lcos
 
     private:
         friend struct detail::future_access;
+        friend class unique_future<R>;
+        friend class future<R>;
 
         // Effects: constructs a future object from an shared state
         explicit shared_future(
@@ -919,6 +928,12 @@ namespace hpx { namespace lcos
           : base_type(detail::future_access::get_shared_state(other))
         {
             other = unique_future<R>();
+        }
+
+        shared_future(BOOST_RV_REF(future<R>) other) BOOST_NOEXCEPT
+          : base_type(detail::future_access::get_shared_state(other))
+        {
+            other = future<R>();
         }
 
         // Effects:
@@ -1111,6 +1126,36 @@ namespace hpx { namespace lcos
         void swap(future& other)
         {
             future_data_.swap(other.future_data_);
+        }
+
+        // Note: This function is unsafe since it invalidates *this,
+        // which is a shared future. This function is only necessary
+        // for impedance matching between using HPX's future<T>, and
+        // the combination unique_future<T>/shared_future<T> which are
+        // close to the C++11 semantics.
+        unique_future<Result> unique()
+        {
+            if (!future_data_) {
+                HPX_THROW_EXCEPTION(no_state,
+                    "future<Result>::unique",
+                    "this future has no valid shared state");
+            }
+
+            auto data = boost::move(future_data_);
+            future_data_.reset();
+            return unique_future<void>(boost::move(data));
+        }
+
+        shared_future<Result> share()
+        {
+            if (!future_data_) {
+                HPX_THROW_EXCEPTION(no_state,
+                    "future<Result>::share",
+                    "this future has no valid shared state");
+            }
+
+            invalidate on_exit(*this);
+            return shared_future<Result>(boost::move(this->future_data_));
         }
 
         // retrieving the value
@@ -1456,6 +1501,32 @@ namespace hpx { namespace lcos
         void swap(future& other)
         {
             future_data_.swap(other.future_data_);
+        }
+
+        unique_future<void> unique()
+        {
+            if (!future_data_) {
+                HPX_THROW_EXCEPTION(no_state,
+                    "future<void>::unique",
+                    "this future has no valid shared state");
+            }
+
+            auto data = boost::move(future_data_);
+            future_data_.reset();
+            return unique_future<void>(boost::move(data));
+        }
+
+        shared_future<void> share()
+        {
+            if (!future_data_) {
+                HPX_THROW_EXCEPTION(no_state,
+                    "future<void>::share",
+                    "this future has no valid shared state");
+            }
+
+            auto data = boost::move(future_data_);
+            future_data_.reset();
+            return shared_future<void>(data);
         }
 
         // retrieving the value
